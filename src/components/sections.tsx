@@ -13,13 +13,17 @@ export function HomeSections() {
     <section className="hero section-shell" id="home">
       <div className="hero-grid"/>
       <div className="hero-copy">
-        <Reveal><div className="availability"><span className="pulse-dot"/> OPEN TO BUILDING INTERESTING THINGS <span className="availability-line"/></div></Reveal>
         <Reveal delay={0.08}><p className="hero-overline">SOFTWARE ENGINEER / DEVELOPER <span>— SRI LANKA</span></p></Reveal>
         <Reveal delay={0.14}><h1>CODE THE<br/><span>FUTURE WORLD.</span></h1></Reveal>
         <Reveal delay={0.2}><p className="hero-tagline">One line at a time <span>:3</span></p></Reveal>
         <Reveal delay={0.26}><div className="hero-actions"><Link className="button-primary" href="/projects">Explore projects <ArrowUpRight size={16}/></Link><Link className="button-quiet" href="/about">A little about me <ArrowRight size={15}/></Link></div></Reveal>
       </div>
-      <Reveal delay={0.25} className="hero-object"><HeroWordmark/></Reveal>
+      <Reveal delay={0.25} className="hero-object">
+        <div className="hero-portrait">
+          <Image src="/images/aqshai-portrait.png" alt="Portrait of AqshaiDev" fill priority sizes="(max-width: 700px) 80vw, 38vw" className="hero-portrait-image"/>
+        </div>
+        <HeroWordmark/>
+      </Reveal>
       <div className="hero-bottom"><span>SCROLL TO EXPLORE <ArrowDown size={13}/></span><span>01 — 05</span><span>DESIGNING · BUILDING · ITERATING</span></div>
     </section>
 
