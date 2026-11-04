@@ -16,6 +16,7 @@ export function Nav() {
         <Link href="/" className="brand" onClick={() => setOpen(false)}>AQSHAI<span>DEV</span><i>.</i></Link>
         <nav className={`nav-links ${open ? "is-open" : ""}`} aria-label="Main navigation">
           {links.map(link => <Link key={link.href} href={link.href} onClick={() => setOpen(false)}>{link.label}</Link>)}
+          <Link href="/v2" className="nav-cta nav-v2-link" onClick={() => setOpen(false)}>V2 <ArrowUpRight size={14}/></Link>
           <Link href="/contact" className="nav-cta" onClick={() => setOpen(false)}>Let's talk <ArrowUpRight size={14}/></Link>
         </nav>
         <div className="nav-actions">
