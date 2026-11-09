@@ -4,6 +4,7 @@ import { ArrowDown, ArrowRight, ArrowUpRight, Code2, Sparkles, Workflow } from "
 import { HeroWordmark } from "@/components/hero-wordmark";
 import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
+import { PlaylistEmbed } from "@/components/playlist-embed";
 import { ProjectCard } from "@/components/project-card";
 import { projects } from "@/lib/projects";
 import { skillGroups } from "@/lib/skills";
@@ -69,6 +70,12 @@ export function HomeSections() {
     <section className="terminal-teaser section-shell">
       <div className="terminal-copy"><span className="eyebrow">A DIFFERENT WAY TO EXPLORE</span><h2>Prefer the<br/><em>command line?</em></h2><p>Open the interactive terminal and navigate the portfolio like a developer.</p></div>
       <div className="terminal-window"><div className="terminal-bar"><span/><span/><span/><small>aqshai@portfolio ~</small></div><div className="terminal-body"><p><b>aqshai@portfolio</b>:~$ help</p><p className="terminal-muted">Available commands:</p><p><i>about</i> · <i>projects</i> · <i>skills</i> · <i>contact</i></p><p><b>aqshai@portfolio</b>:~$ <span className="terminal-caret"/></p><Link href="/terminal" className="text-link terminal-open-link">Open interactive terminal <ArrowUpRight size={13}/></Link></div></div>
+    </section>
+
+    <section className="section-shell section-block playlist-section" id="listening">
+      <Reveal><SectionHeading index="04" eyebrow="OFF THE CLOCK" title="What's on" accent="repeat." /></Reveal>
+      <Reveal delay={0.08}><PlaylistEmbed /></Reveal>
+      <div className="section-end"><span>CURATED, NOT ALGORITHMIC</span><span>122 TRACKS · 6H 37M</span></div>
     </section>
 
     <section className="contact-cta section-shell" id="contact">
