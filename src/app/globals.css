@@ -274,7 +274,7 @@ html.bp-building [data-bp-state="built"] { animation: bpSnap .58s cubic-bezier(.
 .bp-blueprint { position: fixed; inset: 0; z-index: 55; pointer-events: none; background-image: linear-gradient(rgba(65,105,245,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(65,105,245,.06) 1px, transparent 1px); background-size: 46px 46px; mask-image: radial-gradient(78% 66% at 50% 40%, #000 0%, transparent 86%); animation: bpFadeIn .5s ease-out both; }
 @keyframes bpFadeIn { from { opacity: 0; } }
 
-.bp-layer { position: fixed; inset: 0; z-index: 60; pointer-events: none; }
+.bp-layer { position: absolute; left: 0; top: 0; width: 100%; height: 0; z-index: 60; pointer-events: none; }
 
 .bp-skel { position: absolute; border: 1px dashed rgba(119,162,255,.32); border-radius: 4px; background: rgba(65,105,245,.045); overflow: hidden; }
 .bp-skel.is-active { border-color: color-mix(in srgb, var(--tint, #4169f5) 72%, transparent); background: color-mix(in srgb, var(--tint, #4169f5) 9%, rgba(65,105,245,.04)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--tint, #4169f5) 30%, transparent), 0 0 46px color-mix(in srgb, var(--tint, #4169f5) 20%, transparent); }
@@ -306,9 +306,16 @@ html.bp-building [data-bp-state="built"] { animation: bpSnap .58s cubic-bezier(.
 .bp-skel-strip .s-t:nth-child(2) { left: 40%; }
 .bp-skel-strip .s-t:nth-child(3) { right: 0; }
 
+.bp-skel-card .s-head { left: 22px; top: 22%; width: 46%; max-width: 190px; height: 10px; background: rgba(157,178,220,.22); }
+.bp-skel-card .s-l { left: 22px; bottom: 30%; width: 62%; height: 6px; }
+.bp-skel-card .s-l-short { bottom: 17%; width: 40%; }
+.bp-skel-block .s-line { left: 0; top: 14%; width: 100%; height: 1px; background: rgba(157,178,220,.16); }
+.bp-skel-block .s-l { left: 0; top: 40%; width: 58%; max-width: 320px; height: 8px; }
+.bp-skel-block .s-l-short { top: 62%; width: 34%; }
+
 .bp-skel .s-label { background: none; left: 10px; top: 10px; font: 500 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .18em; color: rgba(157,178,220,.55); }
 
-.bp-cursor { position: fixed; left: 0; top: 0; z-index: 62; pointer-events: none; }
+.bp-cursor { position: absolute; left: 0; top: 0; z-index: 62; pointer-events: none; }
 .bp-cursor-arrow { display: block; filter: drop-shadow(0 6px 14px rgba(0,0,0,.65)); }
 .bp-cursor-tag { position: absolute; left: 13px; top: 18px; display: inline-flex; align-items: center; gap: 5px; padding: 3px 7px; border-radius: 4px; font: 600 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .02em; white-space: nowrap; box-shadow: 0 8px 22px rgba(0,0,0,.5); }
 .bp-cursor-tag b { font-weight: 400; opacity: .7; }
@@ -321,7 +328,8 @@ html.bp-building [data-bp-state="built"] { animation: bpSnap .58s cubic-bezier(.
 .bp-log p.is-latest { color: #eaf0fc; }
 .bp-log p.is-latest:after { content: "▍"; margin-left: 3px; color: #77a2ff; animation: blink 1.05s step-end infinite; }
 @keyframes bpLogIn { from { opacity: 0; transform: translateY(5px); } }
-.bp-skip { position: fixed; right: 5.5vw; bottom: 3.4vh; font: 600 9px/1 ui-monospace, monospace; letter-spacing: .22em; text-transform: uppercase; color: rgba(157,178,220,.45); text-shadow: 0 2px 10px rgba(0,0,0,.85); }
+.bp-skip { position: fixed; right: 5.5vw; bottom: 3.4vh; pointer-events: auto; cursor: pointer; font: 600 9px/1 ui-monospace, monospace; letter-spacing: .18em; text-transform: uppercase; color: rgba(157,178,220,.5); text-shadow: 0 2px 10px rgba(0,0,0,.85); transition: color .2s; }
+.bp-skip:hover { color: rgba(190,205,235,.95); }
 .bp-progress { position: fixed; left: 0; top: 0; height: 2px; z-index: 63; pointer-events: none; background: linear-gradient(90deg, #2c50d8, #77a2ff); box-shadow: 0 0 16px rgba(65,105,245,.8); transition: width .3s ease; }
 
 @media (max-width: 860px) {
