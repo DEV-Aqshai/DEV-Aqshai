@@ -309,10 +309,10 @@ export function BuildSequence() {
   return (
     <>
       <div className="bp-layer" aria-hidden="true">
-        {pending.map(b => (
+        {pending.map((b, i) => (
           <div
             key={b.key}
-            className={`bp-skel bp-skel-${b.kind}`}
+            className={`bp-skel bp-skel-${b.kind}${i < 3 ? " is-next" : ""}`}
             style={{ left: b.left, top: b.top, width: b.w, height: b.h, "--tint": AGENTS[b.agent].color } as CSSProperties}
           >
             <SkeletonInner kind={b.kind} />
