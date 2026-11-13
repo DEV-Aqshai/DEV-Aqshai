@@ -157,11 +157,21 @@ export function BuildSequence() {
     itemsRef.current = found;
     setItems(found);
     document.documentElement.classList.add("bp-building");
-    found.forEach(b => {
-      if (b.el.dataset.bpState !== "built") b.el.dataset.bpState = "pending";
-    });
 
     const next = computeCount(window.scrollY);
+    // Write the real state: everything below the scroll frontier is pending.
+    found.forEach((b, i) => {
+      const state = i < next ? "built" : "pending";
+      if (b.el.dataset.bpState !== state) b.el.dataset.bpState = state;
+    });
+
+    const last = found[next - 1];
+    if (last) {
+      const a = [...anchorsRef.current];
+      a[last.agent] = last.key;
+      anchorsRef.current = a;
+      setAnchors(a);
+    }
     countRef.current = next;
     setCount(next);
   }, []);
