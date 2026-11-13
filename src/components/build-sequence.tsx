@@ -1,106 +1,153 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import type { CSSProperties } from "react";
 
-const SEEN_KEY = "aqshai:build-intro:v1";
+const SEEN_KEY = "aqshai:build-intro:v2";
 
-type Agent = { id: string; label: string; color: string; ink: string };
-
-const AGENTS: Agent[] = [
-  { id: "agent-01", label: "layout", color: "#4169f5", ink: "#f4f8ff" },
-  { id: "agent-02", label: "type", color: "#ffb648", ink: "#140e03" },
-  { id: "agent-03", label: "paint", color: "#3ddc97", ink: "#04140c" },
-  { id: "agent-04", label: "qa", color: "#c084fc", ink: "#170529" }
+const AGENTS = [
+  { id: "a01", label: "layout", color: "#4169f5", ink: "#f4f8ff" },
+  { id: "a02", label: "type", color: "#ffb648", ink: "#140e03" },
+  { id: "a03", label: "paint", color: "#3ddc97", ink: "#04140c" },
+  { id: "a04", label: "qa", color: "#c084fc", ink: "#170529" }
 ];
 
-const SPAWN: { x: number; y: number }[] = [
-  { x: 44, y: 58 },
-  { x: 58, y: 26 },
-  { x: 36, y: 44 },
-  { x: 68, y: 74 }
+type Kind = "nav" | "line" | "headline" | "buttons" | "media" | "canvas" | "strip";
+
+type Target = { key: string; sel: string; kind: Kind; agent: number; log: string };
+type Box = Target & { el: HTMLElement; x: number; y: number; w: number; h: number };
+
+/** Real elements of the home page, in the order the agents build them. */
+const TARGETS: Target[] = [
+  { key: "nav", sel: ".site-header", kind: "nav", agent: 0, log: "agent-01 › scaffolding the nav" },
+  { key: "overline", sel: ".hero-overline", kind: "line", agent: 1, log: "agent-02 › loading the type scale" },
+  { key: "headline", sel: ".hero h1", kind: "headline", agent: 1, log: "agent-02 › setting the headline" },
+  { key: "tagline", sel: ".hero-tagline", kind: "line", agent: 1, log: "agent-02 › kerning the tagline" },
+  { key: "actions", sel: ".hero-actions", kind: "buttons", agent: 2, log: "agent-03 › wiring the actions" },
+  { key: "portrait", sel: ".hero-portrait", kind: "media", agent: 2, log: "agent-03 › compositing the portrait" },
+  { key: "wordmark", sel: ".hero-object .wordmark-wrap", kind: "canvas", agent: 3, log: "agent-04 › rendering the wordmark" },
+  { key: "cue", sel: ".hero-bottom", kind: "strip", agent: 3, log: "agent-04 › final polish pass" }
 ];
 
-type Step = { agent: number; x: number; y: number; build?: string; log: string };
+function aim(b: Box) {
+  switch (b.kind) {
+    case "nav": return { x: b.x + b.w * 0.68, y: b.y + b.h * 0.52 };
+    case "headline": return { x: b.x + Math.min(b.w * 0.22, 220), y: b.y + b.h * 0.3 };
+    case "media": return { x: b.x + b.w * 0.56, y: b.y + b.h * 0.4 };
+    case "buttons": return { x: b.x + b.w * 0.1, y: b.y + b.h * 0.55 };
+    case "canvas": return { x: b.x + b.w * 0.52, y: b.y + b.h * 0.55 };
+    default: return { x: b.x + Math.min(b.w * 0.3, 190), y: b.y + b.h * 0.5 };
+  }
+}
 
-const STEPS: Step[] = [
-  { agent: 0, x: 58, y: 5, build: "nav", log: "agent-01 › scaffolding the shell" },
-  { agent: 1, x: 12, y: 21, build: "overline", log: "agent-02 › loading type scale" },
-  { agent: 1, x: 18, y: 31, build: "headline-a", log: "agent-02 › setting headline / 01" },
-  { agent: 1, x: 25, y: 43, build: "headline-b", log: "agent-02 › setting headline / 02" },
-  { agent: 1, x: 14, y: 56, build: "tagline", log: "agent-02 › kerning the tagline" },
-  { agent: 2, x: 10, y: 66, build: "cta-a", log: "agent-03 › rendering primary action" },
-  { agent: 2, x: 28, y: 66, build: "cta-b", log: "agent-03 › rendering quiet action" },
-  { agent: 2, x: 72, y: 41, build: "portrait", log: "agent-03 › compositing portrait plate" },
-  { agent: 3, x: 64, y: 68, build: "badge", log: "agent-04 › checking contrast ratios" },
-  { agent: 0, x: 16, y: 88, build: "card-a", log: "agent-01 › mounting project cards" },
-  { agent: 2, x: 44, y: 88, build: "card-b", log: "agent-03 › filling second card" },
-  { agent: 3, x: 74, y: 88, build: "card-c", log: "agent-04 › final polish pass" }
-];
-
-const TOTAL = STEPS.length;
+function SkeletonInner({ kind }: { kind: Kind }) {
+  switch (kind) {
+    case "nav":
+      return <><span className="s-brand" /><span className="s-links"><i /><i /><i /><i /></span></>;
+    case "headline":
+      return <><span className="s-1" /><span className="s-2" /></>;
+    case "buttons":
+      return <><span className="s-1 s-solid" /><span className="s-2 s-ghost" /></>;
+    case "media":
+      return <><span className="s-cross-a" /><span className="s-cross-b" /><span className="s-label">IMAGE</span></>;
+    case "canvas":
+      return <><span className="s-label">WORDMARK</span><span className="s-bar" /></>;
+    case "strip":
+      return <><span className="s-t" /><span className="s-t" /><span className="s-t" /></>;
+    default:
+      return <span className="s-1" />;
+  }
+}
 
 export function BuildSequence() {
-  const [mounted, setMounted] = useState(false);
-  const [exiting, setExiting] = useState(false);
+  const [boxes, setBoxes] = useState<Box[]>([]);
   const [built, setBuilt] = useState<string[]>([]);
-  const [logs, setLogs] = useState<string[]>(["spawning 4 agents on edge runtime…"]);
-  const [active, setActive] = useState(-1);
+  const [activeKey, setActiveKey] = useState<string | null>(null);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [cursors, setCursors] = useState<{ x: number; y: number }[]>([]);
+  const [running, setRunning] = useState(false);
   const [tick, setTick] = useState(0);
-  const [positions, setPositions] = useState(SPAWN);
-  const timers = useRef<number[]>([]);
 
-  const tints = useMemo(() => {
-    const map: Record<string, string> = {};
-    STEPS.forEach(step => { if (step.build) map[step.build] = AGENTS[step.agent].color; });
-    return map;
-  }, []);
+  const timers = useRef<number[]>([]);
+  const boxesRef = useRef<Box[]>([]);
 
   const clearTimers = useCallback(() => {
     timers.current.forEach(id => window.clearTimeout(id));
     timers.current = [];
   }, []);
 
-  const shut = useCallback(() => {
+  const end = useCallback(() => {
     clearTimers();
-    setExiting(true);
-    timers.current.push(window.setTimeout(() => setMounted(false), 700));
+    document.documentElement.classList.remove("bp-building");
+    boxesRef.current.forEach(b => { delete b.el.dataset.bpState; });
+    boxesRef.current = [];
+    setRunning(false);
+    setBoxes([]);
+    setBuilt([]);
+    setActiveKey(null);
+    setCursors([]);
   }, [clearTimers]);
 
   const run = useCallback(() => {
     clearTimers();
-    setBuilt([]);
-    setLogs(["spawning 4 agents on edge runtime…"]);
-    setPositions(SPAWN);
-    setActive(-1);
-    setExiting(false);
-    setMounted(true);
+    window.scrollTo(0, 0);
 
-    let at = 340;
-    STEPS.forEach(step => {
+    const found: Box[] = [];
+    TARGETS.forEach(t => {
+      const el = document.querySelector<HTMLElement>(t.sel);
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      if (r.width < 12 || r.height < 6) return;
+      if (r.top > window.innerHeight - 8 || r.bottom < 12) return;
+      found.push({ ...t, el, x: r.left, y: r.top, w: r.width, h: r.height });
+    });
+    if (found.length < 4) return;
+
+    boxesRef.current = found;
+    document.documentElement.classList.add("bp-building");
+    found.forEach(b => { b.el.dataset.bpState = "pending"; });
+
+    setBoxes(found);
+    setBuilt([]);
+    setActiveKey(null);
+    setLogs(["4 agents online · reading the layout"]);
+    setCursors([
+      { x: -70, y: window.innerHeight * 0.42 },
+      { x: window.innerWidth + 70, y: window.innerHeight * 0.26 },
+      { x: window.innerWidth * 0.5, y: window.innerHeight + 90 },
+      { x: window.innerWidth + 50, y: window.innerHeight * 0.74 }
+    ]);
+    setRunning(true);
+
+    // ?slow=1 stretches the sequence, handy for screen-recording the build.
+    const slow = new URLSearchParams(window.location.search).get("slow") === "1" ? 3.2 : 1;
+
+    let at = 400 * slow;
+    found.forEach(b => {
       timers.current.push(window.setTimeout(() => {
-        setActive(step.agent);
+        const p = aim(b);
+        setActiveKey(b.key);
         setTick(t => t + 1);
-        setPositions(prev => prev.map((pos, idx) => (idx === step.agent ? { x: step.x, y: step.y } : pos)));
-        setLogs(prev => [...prev, step.log].slice(-4));
+        setCursors(prev => prev.map((c, i) => (i === b.agent ? p : c)));
+        setLogs(prev => [...prev, b.log].slice(-3));
         timers.current.push(window.setTimeout(() => {
-          if (!step.build) return;
-          setBuilt(prev => (prev.includes(step.build!) ? prev : [...prev, step.build!]));
-        }, 150));
+          b.el.dataset.bpState = "built";
+          setBuilt(prev => (prev.includes(b.key) ? prev : [...prev, b.key]));
+        }, 170 * slow));
       }, at));
-      at += 205;
+      at += 285 * slow;
     });
 
     timers.current.push(window.setTimeout(() => {
-      setLogs(prev => [...prev, "build complete · 4 agents · shipping"].slice(-4));
-      setPositions(prev => prev.map((_, idx) => ({ x: 62 + idx * 5, y: 95 - idx * 2 })));
-    }, at + 60));
+      setLogs(prev => [...prev, "build complete · shipping to production"].slice(-3));
+      setCursors(prev => prev.map((_, i) => ({ x: window.innerWidth + 90 + i * 24, y: window.innerHeight * (0.18 + i * 0.2) })));
+    }, at + 120 * slow));
 
-    timers.current.push(window.setTimeout(() => shut(), at + 700));
-  }, [clearTimers, shut]);
+    timers.current.push(window.setTimeout(() => end(), at + 660 * slow));
+  }, [clearTimers, end]);
 
-  // First-visit gating: skip for reduced motion, skip if already seen this session.
+  // First-visit gating.
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const forced = new URLSearchParams(window.location.search).get("build") === "1";
@@ -109,163 +156,95 @@ export function BuildSequence() {
     if (reduce) return;
     if (seen && !forced) return;
     try { sessionStorage.setItem(SEEN_KEY, "1"); } catch { /* storage blocked */ }
-    run();
-    return clearTimers;
+
+    let cancelled = false;
+    const start = () => { if (!cancelled) run(); };
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(() => window.setTimeout(start, 60));
+      window.setTimeout(start, 700); // safety net if the font promise stalls
+    } else {
+      window.setTimeout(start, 120);
+    }
+    return () => { cancelled = true; clearTimers(); };
   }, [run, clearTimers]);
 
-  // Replay hook: any component can dispatch window event "aqshai:build".
+  // Replay hook for the command menu.
   useEffect(() => {
-    const replay = () => run();
+    const replay = () => { end(); window.setTimeout(run, 60); };
     window.addEventListener("aqshai:build", replay);
     return () => window.removeEventListener("aqshai:build", replay);
-  }, [run]);
+  }, [run, end]);
 
-  // Skip on key press.
+  // Skip on click or key.
   useEffect(() => {
-    if (!mounted) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" || e.key === "Enter" || e.key === " ") shut(); };
+    if (!running) return;
+    const skip = () => end();
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" || e.key === "Enter" || e.key === " ") skip(); };
+    window.addEventListener("pointerdown", skip);
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [mounted, shut]);
+    return () => {
+      window.removeEventListener("pointerdown", skip);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [running, end]);
 
-  // Lock scroll while the build plays.
+  // Hold the page still while it is being assembled.
   useEffect(() => {
-    if (!mounted) return;
+    if (!running) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
-  }, [mounted]);
+  }, [running]);
 
-  const pct = Math.round((built.length / TOTAL) * 100);
-  const has = (key: string) => built.includes(key);
-  const tint = (key: string) => ({ "--tint": tints[key] ?? "#4169f5" }) as CSSProperties;
+  if (!running) return null;
+
+  const pct = boxes.length ? Math.round((built.length / boxes.length) * 100) : 0;
 
   return (
-    <AnimatePresence>
-      {mounted && (
-        <motion.div
-          className={`build-overlay ${exiting ? "is-exiting" : ""}`}
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={shut}
-          aria-hidden="true"
-        >
-          <div className="build-atmos" />
-          <div className="build-scanline" />
+    <>
+      <div className="bp-blueprint" aria-hidden="true" />
+      <div className="bp-layer" aria-hidden="true">
+        {boxes.map(b => built.includes(b.key) ? null : (
+          <div
+            key={b.key}
+            className={`bp-skel bp-skel-${b.kind} ${activeKey === b.key ? "is-active" : ""}`}
+            style={{ left: b.x, top: b.y, width: b.w, height: b.h, "--tint": AGENTS[b.agent].color } as CSSProperties}
+          >
+            <SkeletonInner kind={b.kind} />
+          </div>
+        ))}
 
-          <div className="build-hud">
-            <span className="build-hud-brand">aqshaidev<span>://</span>build</span>
-            <span className="build-hud-meta">
-              <i className="build-pulse" />
-              4 agents · {pct}%
+        {AGENTS.map((agent, i) => (
+          <motion.div
+            key={agent.id}
+            className="bp-cursor"
+            initial={false}
+            animate={{ left: cursors[i]?.x ?? -80, top: cursors[i]?.y ?? -80 }}
+            transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+            style={{ color: agent.color }}
+          >
+            <svg className="bp-cursor-arrow" width="18" height="24" viewBox="0 0 17 23" fill="none">
+              <path d="M1.2 1.2V17.6L5.7 13.4L8.6 20.7L11.9 19.4L9 12.2L15 11.8L1.2 1.2Z" fill="currentColor" stroke="#05070d" strokeWidth="1.1" strokeLinejoin="round" />
+            </svg>
+            <span className="bp-cursor-tag" style={{ background: agent.color, color: agent.ink }}>
+              {agent.id} <b>{agent.label}</b>
             </span>
-          </div>
+            {activeKey && AGENTS.findIndex(a => a.id === agent.id) === (boxes.find(b => b.key === activeKey)?.agent ?? -1) && (
+              <span key={tick} className="bp-ripple" style={{ borderColor: agent.color }} />
+            )}
+          </motion.div>
+        ))}
+      </div>
 
-          <div className="build-stage">
-            <div className="build-frame">
-              <div className="build-chrome">
-                <i /><i /><i />
-                <small>dev-aqshai.vercel.app</small>
-                <em>{exiting ? "ready" : "building"}</em>
-              </div>
-
-              <div className="build-canvas">
-                <div className={`bp bp-nav ${has("nav") ? "is-built" : ""}`} style={tint("nav")}>
-                  <strong className="bp-text bp-brand">AQSHAIDEV<i>.</i></strong>
-                  <span className="bp-links"><i /><i /><i /><i /></span>
-                </div>
-
-                <div className="bp-col">
-                  <div className={`bp bp-overline ${has("overline") ? "is-built" : ""}`} style={tint("overline")}>
-                    <span className="bp-bar" />
-                    <span className="bp-text">SOFTWARE ENGINEER / DEVELOPER — SRI LANKA</span>
-                  </div>
-
-                  <div className={`bp bp-headline bp-headline-a ${has("headline-a") ? "is-built" : ""}`} style={tint("headline-a")}>
-                    <span className="bp-bar" />
-                    <strong className="bp-text">CODE THE</strong>
-                  </div>
-
-                  <div className={`bp bp-headline bp-headline-b ${has("headline-b") ? "is-built" : ""}`} style={tint("headline-b")}>
-                    <span className="bp-bar" />
-                    <strong className="bp-text">FUTURE WORLD.</strong>
-                  </div>
-
-                  <div className={`bp bp-tagline ${has("tagline") ? "is-built" : ""}`} style={tint("tagline")}>
-                    <span className="bp-bar" />
-                    <span className="bp-text">One line at a time :3</span>
-                  </div>
-
-                  <div className="bp-ctas">
-                    <div className={`bp bp-btn ${has("cta-a") ? "is-built" : ""}`} style={tint("cta-a")}>
-                      <span className="bp-bar" />
-                      <span className="bp-text">Explore projects</span>
-                    </div>
-                    <div className={`bp bp-btn bp-btn-quiet ${has("cta-b") ? "is-built" : ""}`} style={tint("cta-b")}>
-                      <span className="bp-bar" />
-                      <span className="bp-text">A little about me</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={`bp bp-portrait ${has("portrait") ? "is-built" : ""}`} style={tint("portrait")}>
-                  <div className="bp-portrait-fill" />
-                  <span className="bp-portrait-label">PORTRAIT · 4:5</span>
-                  <div className={`bp bp-badge ${has("badge") ? "is-built" : ""}`} style={tint("badge")}>
-                    <span className="bp-bar" />
-                    <span className="bp-text"><i />OPEN TO WORK</span>
-                  </div>
-                </div>
-
-                <div className="bp-cards">
-                  {(["card-a", "card-b", "card-c"] as const).map((key, i) => (
-                    <div key={key} className={`bp bp-card ${has(key) ? "is-built" : ""}`} style={tint(key)}>
-                      <span className="bp-bar" />
-                      <span className="bp-card-head" />
-                      <span className="bp-card-line" />
-                      <span className="bp-card-line bp-card-line-short" />
-                      <span className="bp-card-index">0{i + 1}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {AGENTS.map((agent, i) => (
-                  <motion.div
-                    key={agent.id}
-                    className="build-cursor"
-                    animate={{ left: `${positions[i].x}%`, top: `${positions[i].y}%` }}
-                    initial={false}
-                    transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ color: agent.color }}
-                  >
-                    <svg className="build-cursor-arrow" width="17" height="23" viewBox="0 0 17 23" fill="none">
-                      <path d="M1.2 1.2V17.6L5.7 13.4L8.6 20.7L11.9 19.4L9 12.2L15 11.8L1.2 1.2Z" fill="currentColor" stroke="#05070d" strokeWidth="1.1" strokeLinejoin="round" />
-                    </svg>
-                    <span className="build-cursor-tag" style={{ background: agent.color, color: agent.ink }}>
-                      {agent.id.replace("agent-", "a")} <b>{agent.label}</b>
-                    </span>
-                    {active === i && (
-                      <span key={tick} className="build-ripple" style={{ borderColor: agent.color }} />
-                    )}
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            <div className="build-console">
-              {logs.map((line, i) => (
-                <p key={`${line}-${i}`} className={i === logs.length - 1 ? "is-latest" : ""}>
-                  <span>{String(i + 1).padStart(2, "0")}</span>
-                  {line}
-                </p>
-              ))}
-            </div>
-          </div>
-
-          <span className="build-skip">skip build ›</span>
-          <div className="build-progress" style={{ width: `${pct}%` }} />
-        </motion.div>
-      )}
-    </AnimatePresence>
+      <div className="bp-hud" aria-hidden="true">
+        <div className="bp-log">
+          {logs.map((line, i) => (
+            <p key={`${line}-${i}`} className={i === logs.length - 1 ? "is-latest" : ""}>{line}</p>
+          ))}
+        </div>
+        <span className="bp-skip">skip ›</span>
+      </div>
+      <div className="bp-progress" style={{ width: `${pct}%` }} aria-hidden="true" />
+    </>
   );
 }
