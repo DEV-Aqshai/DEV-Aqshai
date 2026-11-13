@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowUpRight, Command, Github, House, Layers3, Mail, Moon, Sun, UserRound, X } from "lucide-react";
+import { ArrowUpRight, Bot, Command, Github, House, Layers3, Mail, Moon, Sun, UserRound, X } from "lucide-react";
 import { useTheme } from "next-themes";
 
 const actions = [
@@ -52,6 +52,9 @@ export function CommandMenu() {
               })}
               <button className="command-item" onClick={() => { setTheme(resolvedTheme === "dark" ? "light" : "dark"); setOpen(false); }}>
                 <span className="command-item-icon">{resolvedTheme === "dark" ? <Sun size={16}/> : <Moon size={16}/>}</span><span><strong>Toggle appearance</strong><small>Switch light / dark mode</small></span>
+              </button>
+              <button className="command-item" onClick={() => { setOpen(false); window.dispatchEvent(new Event("aqshai:build")); }}>
+                <span className="command-item-icon"><Bot size={16}/></span><span><strong>Replay build intro</strong><small>Watch the agents rebuild the page</small></span>
               </button>
               {filtered.length === 0 && <p className="empty-state">No matching commands.</p>}
             </div>

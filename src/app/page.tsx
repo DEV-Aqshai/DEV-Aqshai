@@ -1,3 +1,4 @@
 import { HomeSections } from "@/components/sections";
 import { ScrollEffects } from "@/components/scroll-effects";
-export default function HomePage() { return <><ScrollEffects/><HomeSections/></>; }
+import { BuildSequence } from "@/components/build-sequence";
+export default function HomePage() { return <><BuildSequence/><ScrollEffects/><HomeSections/></>; }
