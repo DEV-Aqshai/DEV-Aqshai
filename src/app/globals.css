@@ -289,7 +289,9 @@ main { min-height: 70vh; }
 
 .bp { position: relative; border: 1px dashed rgba(157,178,220,.2); border-radius: 3px; background: rgba(157,178,220,.022); overflow: hidden; transition: border-color .4s, background .45s, box-shadow .45s; }
 .bp:after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--tint, #4169f5); opacity: 0; pointer-events: none; }
-.bp.is-built { border-style: solid; border-color: color-mix(in srgb, var(--tint, #4169f5) 58%, transparent); background: color-mix(in srgb, var(--tint, #4169f5) 10%, rgba(8,11,18,.55)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--tint, #4169f5) 13%, transparent), 0 14px 36px rgba(2,6,16,.5); }
+.bp.is-built { border-style: solid; border-color: color-mix(in srgb, var(--tint, #4169f5) 30%, rgba(157,178,220,.3)); background: color-mix(in srgb, var(--tint, #4169f5) 7%, rgba(9,13,22,.72)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--tint, #4169f5) 7%, transparent), 0 14px 36px rgba(2,6,16,.5); }
+.bp.is-built:before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--tint, #4169f5); opacity: .75; }
+.bp-badge.is-built:before, .bp-nav.is-built:before { display: none; }
 .bp.is-built:after { animation: bpFlash .52s ease-out; }
 @keyframes bpFlash { 0% { opacity: .3; } 100% { opacity: 0; } }
 .bp-bar { position: absolute; inset: 0; background: rgba(157,178,220,.06); transition: opacity .3s; }
@@ -328,7 +330,7 @@ main { min-height: 70vh; }
 .bp-badge .bp-text i { width: 4px; height: 4px; border-radius: 50%; background: #3ddc97; }
 
 .bp-cards { position: absolute; left: 3%; right: 3%; bottom: 4.5%; height: 20%; display: flex; gap: 2%; }
-.bp-card { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; padding: 9px 10px; }
+.bp-card { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; padding: 9px 10px 9px 12px; }
 .bp-card-head { width: 54%; height: 6px; border-radius: 2px; background: rgba(157,178,220,.26); opacity: 0; transition: opacity .45s .1s; }
 .bp-card-line { width: 86%; height: 3px; border-radius: 2px; background: rgba(157,178,220,.14); opacity: 0; transition: opacity .45s .18s; }
 .bp-card-line-short { width: 58%; }
